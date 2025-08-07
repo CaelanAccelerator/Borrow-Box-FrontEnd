@@ -1,0 +1,82 @@
+{"orders" : [
+  {
+    "id": 1,
+    "item_name": "Desk Lamp",
+    "payment": "$25.00",
+    "start_date": "2025-08-01T10:00:00Z",
+    "end_time": "2025-08-15T10:00:00Z",
+    "renter_name": "Alice Johnson"
+  },
+  {
+    "id": 2,
+    "item_name": "Office Chair",
+    "payment": "$50.00",
+    "start_date": "2025-08-02T09:00:00Z",
+    "end_time": "2025-08-16T09:00:00Z",
+    "renter_name": "Bob Smith"
+  },
+  {
+    "id": 3,
+    "item_name": "Mini Fridge",
+    "payment": "$60.00",
+    "start_date": "2025-08-03T14:00:00Z",
+    "end_time": "2025-08-17T14:00:00Z",
+    "renter_name": "Carol Lee"
+  },
+  {
+    "id": 4,
+    "item_name": "Bookshelf",
+    "payment": "$30.00",
+    "start_date": "2025-08-04T11:00:00Z",
+    "end_time": "2025-08-18T11:00:00Z",
+    "renter_name": "David Kim"
+  },
+  {
+    "id": 5,
+    "item_name": "Microwave",
+    "payment": "$40.00",
+    "start_date": "2025-08-05T12:00:00Z",
+    "end_time": "2025-08-19T12:00:00Z",
+    "renter_name": "Emma White"
+  },
+  {
+    "id": 6,
+    "item_name": "Fan",
+    "payment": "$15.00",
+    "start_date": "2025-08-06T08:00:00Z",
+    "end_time": "2025-08-20T08:00:00Z",
+    "renter_name": "Frank Zhang"
+  },
+  {
+    "id": 7,
+    "item_name": "Toaster",
+    "payment": "$10.00",
+    "start_date": "2025-08-07T13:00:00Z",
+    "end_time": "2025-08-21T13:00:00Z",
+    "renter_name": "Grace Wu"
+  },
+  {
+    "id": 8,
+    "item_name": "Futon",
+    "payment": "$75.00",
+    "start_date": "2025-08-08T15:00:00Z",
+    "end_time": "2025-08-22T15:00:00Z",
+    "renter_name": "Henry Liu"
+  },
+  {
+    "id": 9,
+    "item_name": "Air Purifier",
+    "payment": "$35.00",
+    "start_date": "2025-08-09T16:00:00Z",
+    "end_time": "2025-08-23T16:00:00Z",
+    "renter_name": "Isabel Chen"
+  },
+  {
+    "id": 10,
+    "item_name": "Study Table",
+    "payment": "$55.00",
+    "start_date": "2025-08-10T17:00:00Z",
+    "end_time": "2025-08-24T17:00:00Z",
+    "renter_name": "Jason Patel"
+  }
+]}
