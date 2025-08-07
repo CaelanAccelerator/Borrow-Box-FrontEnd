@@ -41,7 +41,7 @@ export default function BasicSelect() {
         //   total: number;
         //   limit: number;
         //   offset: number;
-        // }>(api);
+        // }>(api,);
         const response = await axios.get(api);
         setItems(response.data);
       }
