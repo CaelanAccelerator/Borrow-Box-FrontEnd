@@ -14,14 +14,19 @@ import DateSelector from "./DateSelector";
     'Drones', 'Cameras', 'Appliances', 'Home Decor', 'Fitness Equipment',
   ];
 
-  const priceList = [
-    'Below 10', '10 ~ 20', '20 ~ 30', '30 ~ 50', '50 ~ 100', 'Above 100'
+  const priceListStart = [
+    '10','20','30','40'
+  ];
+
+  const priceListEnd = [
+    '20','30','40','50','60'
   ];
 
 export default () =>{
 
-  const [category, setCategory] = React.useState("");
-  const [price, setPrice] = React.useState("");
+  const [category, setCategory] = useState("");
+  const [priceFrom, setPriceFrom] = useState("");
+  const [priceTo, setPriceTo] = useState("");
   const [startDate, setStartDate] = useState<Date | null>(new Date());
   const [endDate, setEndDate] = useState<Date | null>(new Date());
 
@@ -30,8 +35,12 @@ export default () =>{
         setCategory(event.target.value as string);
         console.log("Selected category:", event.target.value);
       }
-      else if (event.target.name === "price-select") {
-        setPrice(event.target.value as string);
+      else if (event.target.name === "price-select-from") {
+        setPriceFrom(event.target.value as string);
+        console.log("Selected price range:", event.target.value);
+      }
+      else if (event.target.name === "price-select-to") {
+        setPriceTo(event.target.value as string);
         console.log("Selected price range:", event.target.value);
       }
     };
@@ -73,12 +82,28 @@ export default () =>{
           <InputLabel id="listings-price-select-label">Price</InputLabel>
           <Select
             labelId="listings-price-select-label"
-            name="price-select"
-            value={price}
+            name="price-select-from"
+            value={priceFrom}
             label="Price"
             onChange={handleChange}
           >
-            {priceList.map((price) => (
+            {priceListStart.map((price) => (
+              <MenuItem key={price} value={price}>
+                {price}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl size="medium" sx={{ width: 200 }}>
+          <InputLabel id="listings-price-select-label">Price</InputLabel>
+          <Select
+            labelId="listings-price-select-label"
+            name="price-select-to"
+            value={priceTo}
+            label="Price"
+            onChange={handleChange}
+          >
+            {priceListEnd.map((price) => (
               <MenuItem key={price} value={price}>
                 {price}
               </MenuItem>
