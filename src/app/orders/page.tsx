@@ -34,15 +34,19 @@ export default function BasicSelect() {
   useEffect(() => {
     console.log("🔄 useEffect fired");
     async function fetchData() {
-      const api = "http://localhost:3001/orders";
+      const api = "http://localhost:3005/orders";
       try {
-        // const response = await axios.get<{
-        //   data: Item[];
-        //   total: number;
-        //   limit: number;
-        //   offset: number;
-        // }>(api,);
-        const response = await axios.get(api);
+        const response = await axios.get<{
+          data: Item;
+          total: number;
+          limit: number;
+          offset: number;
+        }>(api, {
+          params: {
+            start_date: startDate ? startDate.toISOString() : undefined,
+            end_date: endDate ? endDate.toISOString() : undefined,
+          },
+        });
         setItems(response.data);
       }
       catch (err) {

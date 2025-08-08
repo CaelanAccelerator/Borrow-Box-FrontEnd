@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
-import { createTheme } from '@mui/material/styles';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import {type Navigation } from '@toolpad/core/AppProvider';
 import {DashboardLayout} from '@toolpad/core/DashboardLayout';
+import { CssBaseline } from '@mui/material';
 
 
 const NAVIGATION: Navigation = [
@@ -58,8 +59,11 @@ export {NAVIGATION, AppTheme};
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   // DashboardLayout will read your NAVIGATION from NextAppProvider
   return (
-    <DashboardLayout disableCollapsibleSidebar = {true}>
-      {children}
-    </DashboardLayout>
+    <ThemeProvider theme={AppTheme}>
+      <CssBaseline />
+      <DashboardLayout disableCollapsibleSidebar={true}>
+        {children}
+      </DashboardLayout>
+    </ThemeProvider>
   );
 }

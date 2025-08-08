@@ -17,10 +17,10 @@ import axios from "axios";
 import DateSelector from "./DateSelector";
 
 interface Item {
-  id: string;
+  id: number;
   name: string;
   image_url: string;
-  price: number;
+  price: String;
   start_date: string;
   end_time: string;
 }
@@ -47,17 +47,17 @@ export default function BasicSelect() {
   const [category, setCategory] = useState("");
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
-  const [startDate, setStartDate] = useState<Date | null>(new Date());
-  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [start_date, setStartDate] = useState<Date | null>(new Date());
+  const [end_time, setEndDate] = useState<Date | null>(null);
   type SortOrder = 'asc' | 'desc';
   const [order, setOrder] = useState<SortOrder>('asc');
-  type OrderBy = 'price' | 'startDate' | 'EndDate';
+  type OrderBy = 'price' | 'start_date' | 'end_time';
   const [orderBy, setOrderBy] = useState<OrderBy>('price');
 
   useEffect(() => {
     console.log("🔄 useEffect fired");
     async function fetchData() {
-      const api = "http://localhost:3005/";
+      const api = "http://localhost:3005/items";
       try {
         const response = await axios.get<{
           data: Item[];
@@ -69,20 +69,23 @@ export default function BasicSelect() {
             category: category || null,
             priceFrom: priceFrom || null,
             priceTo: priceTo || null,
-            startDate: startDate || null,
-            endDate: endDate || null,
+            start_date: start_date || null,
+            end_time: end_time || null,
             order,
             orderBy
           }
         });
         setItems(response.data.data);
+        console.log(response.data.total);
+        console.log(response.data.limit);
+        console.log(api);
       }
       catch (err) {
         console.error('Error loading items:', err);
       }
     }
     fetchData();
-  }, [category, priceFrom, priceTo, startDate, endDate, order, orderBy]);
+  }, [category, priceFrom, priceTo, start_date, end_time, order, orderBy]);
 
   const handleChange = (event: SelectChangeEvent) => {
     if (event.target.name === "category-select") {
@@ -175,14 +178,14 @@ export default function BasicSelect() {
         <FormControl size="medium" sx={{ width: 200 }}>
           <DateSelector
             label="Start Date"
-            value={startDate}
+            value={start_date}
             onChange={(newDate) => { setStartDate(newDate); console.log("Selected start date:", newDate); }}
           />
         </FormControl>
         <FormControl size="medium" sx={{ width: 200 }}>
           <DateSelector
             label="End Date"
-            value={endDate}
+            value={end_time}
             onChange={(newDate) => { setEndDate(newDate); console.log("Selected end date:", newDate); }}
           />
         </FormControl>
@@ -198,10 +201,10 @@ export default function BasicSelect() {
                   <TableSortLabel direction={order} onClick={() => handleSort('price')} >Price</TableSortLabel>
                 </TableCell>
                 <TableCell>
-                  <TableSortLabel direction={order} onClick={() => handleSort('startDate')}>Available Begin</TableSortLabel>
+                  <TableSortLabel direction={order} onClick={() => handleSort('start_date')}>Available Begin</TableSortLabel>
                 </TableCell>
                 <TableCell>
-                  <TableSortLabel direction={order} onClick={() => handleSort('EndDate')}>Rental at end</TableSortLabel>
+                  <TableSortLabel direction={order} onClick={() => handleSort('end_time')}>Rental at end</TableSortLabel>
                 </TableCell>
               </TableRow>
             </TableHead>
