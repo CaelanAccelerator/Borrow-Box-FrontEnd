@@ -36,21 +36,23 @@ export default function BasicSelect() {
     async function fetchData() {
       const api = "http://localhost:3005/orders";
       try {
-        const response = await axios.get<{
-          data: Item;
-          total: number;
-          limit: number;
-          offset: number;
-        }>(api, {
+        const response = await axios.get(api, {
           params: {
             start_date: startDate ? startDate.toISOString() : undefined,
             end_date: endDate ? endDate.toISOString() : undefined,
           },
         });
-        setItems(response.data);
+        
+        // 添加日志查看响应数据
+        console.log('API Response:', response.data);
+        
+        // 如果响应直接是数组，就直接使用
+        const ordersData = Array.isArray(response.data) ? response.data : response.data.data;
+        setItems(ordersData || []);
       }
       catch (err) {
         console.error('Error loading items:', err);
+        setItems([]); // 出错时设置空数组
       }
     }
     fetchData();

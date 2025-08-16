@@ -1,30 +1,28 @@
 "use client";
 
-import Masonry from 'react-masonry-css';
-import { Box, Card, CardContent, CardMedia, FormControl, InputLabel, MenuItem, 
-         Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
-import { styled } from '@mui/material/styles';
+// ===============================
+// Imports
+// ===============================
+import React, { useEffect, useState } from "react";
+import Box from "@mui/material/Box";
 import { useRouter } from "next/navigation";
-import axios from 'axios';
-import { useState, useEffect } from 'react';
-import DateSelector from './DateSelector';
-
-// ===============================
-// Styled Components
-// ===============================
-const StyledMasonry = styled(Masonry)({
-  display: 'flex',
-  marginLeft: '-30px', 
-  width: 'auto',
-  '& .my-masonry-grid_column': {
-    paddingLeft: '30px',
-    backgroundClip: 'padding-box',
-  }
-});
+import { Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TableSortLabel, TextField } from "@mui/material";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from "@mui/material";
+import axios from "axios";
+import DateSelector from "./DateSelector";
 
 // ===============================
 // Types & Interfaces
 // ===============================
+// Define the structure for item data
 interface Item {
   id: number;
   name: string;
@@ -34,14 +32,14 @@ interface Item {
   end_time: string;
 }
 
+// Define possible sort orders and sortable fields
 type SortOrder = 'asc' | 'desc';
 type OrderBy = 'price' | 'start_date' | 'end_time';
 
 // ===============================
 // Constants
 // ===============================
-const DEFAULT_IMAGE = '/ItemManagement/mock_image/20220602152901_7d355.jpg';
-
+// Available categories for item filtering
 const categoryList = [
   'Computers', 'XBox', 'Balls', 'Books', 'Furniture', 'Kitchenware',
   'Sports', 'Electronics', 'Musical Instruments', 'Camping Gear',
@@ -49,63 +47,40 @@ const categoryList = [
   'Drones', 'Cameras', 'Appliances', 'Home Decor', 'Fitness Equipment',
 ];
 
+// Price range options for filtering
 const priceListStart = ['10', '20', '30', '40'];
 const priceListEnd = ['20', '30', '40', '50', '60'];
-
-const breakpointCols = {
-  default: 4,
-  1100: 3,
-  700: 2,
-  500: 1
-};
 
 // ===============================
 // Main Component
 // ===============================
-export default function ItemManagement() {
+export default function BasicSelect() {
   // ===============================
   // State Management
   // ===============================
-  const router = useRouter();
+  // Items data and filtering states
   const [items, setItems] = useState<Item[]>([]);
   const [category, setCategory] = useState("");
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
+  
+  // Date range states
   const [start_date, setStartDate] = useState<Date | null>(new Date());
   const [end_time, setEndDate] = useState<Date | null>(null);
+  
+  // Sorting states
   const [order, setOrder] = useState<SortOrder>('asc');
   const [orderBy, setOrderBy] = useState<OrderBy>('price');
 
-  // ===============================
-  // Event Handlers
-  // ===============================
-  const handleCardClick = (itemId: number) => {
-    router.push(`/listings/${itemId}`);
-  };
-
-  const handleChange = (event: SelectChangeEvent) => {
-    const { name, value } = event.target;
-    switch (name) {
-      case "category-select":
-        setCategory(value);
-        console.log("Selected category:", value);
-        break;
-      case "price-select-from":
-        setPriceFrom(value);
-        console.log("Selected price from:", value);
-        break;
-      case "price-select-to":
-        setPriceTo(value);
-        console.log("Selected price to:", value);
-        break;
-    }
-  };
+  // Router for navigation
+  const router = useRouter();
 
   // ===============================
   // Data Fetching
   // ===============================
   useEffect(() => {
     console.log("🔄 useEffect fired");
+    // Fetch items based on current filters and sorting
     async function fetchData() {
       const api = "http://localhost:3005/items";
       try {
@@ -126,7 +101,11 @@ export default function ItemManagement() {
           }
         });
         setItems(response.data.data);
-      } catch (err) {
+        console.log(response.data.total);
+        console.log(response.data.limit);
+        console.log(api);
+      }
+      catch (err) {
         console.error('Error loading items:', err);
       }
     }
@@ -134,25 +113,56 @@ export default function ItemManagement() {
   }, [category, priceFrom, priceTo, start_date, end_time, order, orderBy]);
 
   // ===============================
+  // Event Handlers
+  // ===============================
+  // Handle changes in filter dropdowns
+  const handleChange = (event: SelectChangeEvent) => {
+    if (event.target.name === "category-select") {
+      setCategory(event.target.value as string);
+      console.log("Selected category:", event.target.value);
+    }
+    else if (event.target.name === "price-select-from") {
+      setPriceFrom(event.target.value as string);
+      console.log("Selected price range:", event.target.value);
+    }
+    else if (event.target.name === "price-select-to") {
+      setPriceTo(event.target.value as string);
+      console.log("Selected price range:", event.target.value);
+    }
+  };
+
+  // Handle sorting column clicks
+  const handleSort = (orderFactor: OrderBy) => {
+    const isAsc: SortOrder = order === 'asc' ? 'desc' : 'asc';
+    setOrderBy(orderFactor);
+    setOrder(isAsc);
+  }
+
+  // ===============================
   // Render
   // ===============================
   return (
     <div>
       {/* Filter Section */}
-      <Box sx={{
-        minWidth: 200,
-        fillWidth: "100%",
-        alignItems: "center",
-        gap: 4,
-        display: "flex",
-        padding: 2,
-      }}>
+      <Box
+        sx={{
+          minWidth: 200,
+          fillWidth: "100%",
+          alignItems: "center",
+          gap: 4,
+          display: "flex",
+          padding: 2,
+        }}
+      >
+        {/* Search Input */}
         <FormControl size="medium" sx={{ width: 400 }}>
           <TextField
             id="listings-search-input"
             label="Search Items you are interested in"
           />
         </FormControl>
+
+        {/* Category Filter */}
         <FormControl size="medium" sx={{ width: 200 }}>
           <InputLabel id="listings-category-select-label">Category</InputLabel>
           <Select
@@ -168,6 +178,8 @@ export default function ItemManagement() {
             ))}
           </Select>
         </FormControl>
+
+        {/* Price Range Filters */}
         <FormControl size="medium" sx={{ width: 200 }}>
           <InputLabel id="listings-price-select-label">Price</InputLabel>
           <Select
@@ -200,6 +212,8 @@ export default function ItemManagement() {
             ))}
           </Select>
         </FormControl>
+
+        {/* Date Range Selectors */}
         <FormControl size="medium" sx={{ width: 200 }}>
           <DateSelector
             label="Start Date"
@@ -216,57 +230,58 @@ export default function ItemManagement() {
         </FormControl>
       </Box>
 
-      {/* Items Grid Section */}
-      <Box sx={{ p: 2 }}>
-        <StyledMasonry
-          breakpointCols={breakpointCols}
-          className="my-masonry-grid"
-          columnClassName="my-masonry-grid_column"
-        >
-          {items.map((item) => (
-            <Card
-              key={item.id}
-              sx={{
-                mb: 3,
-                cursor: 'pointer',
-                '&:hover': {
-                  transform: 'scale(1.02)',
-                  transition: 'transform 0.2s ease-in-out',
-                  boxShadow: 3
-                }
-              }}
-              onClick={() => handleCardClick(item.id)}
-            >
-              <CardMedia
-                component="img"
-                height="200"
-                image={DEFAULT_IMAGE}
-                alt={item.name}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = DEFAULT_IMAGE;
-                }}
-              />
-              <CardContent>
-                <Typography variant="h6" component="div">
-                  {item.name}
-                </Typography>
-                {/* <Typography variant="body2" color="text.secondary">
-                  {item.description}
-                </Typography> */}
-                <Typography variant="h6" color="primary">
-                  ${item.price}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {item.start_date ? new Date(item.start_date).toLocaleDateString() : 'N/A'} -
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {item.end_time ? new Date(item.end_time).toLocaleDateString() : 'N/A'}
-                </Typography>
-              </CardContent>
-            </Card>
-          ))}
-        </StyledMasonry>
+      {/* Items Table */}
+      <Box sx={{ marginTop: 0, padding: 2 }}>
+        <TableContainer component={Paper}>
+          {/* Table Header with Sortable Columns */}
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Item</TableCell>
+                <TableCell>Image</TableCell>
+                <TableCell>
+                  <TableSortLabel direction={order} onClick={() => handleSort('price')} >Price</TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel direction={order} onClick={() => handleSort('start_date')}>Available Begin</TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel direction={order} onClick={() => handleSort('end_time')}>Rental at end</TableSortLabel>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+
+            {/* Table Body with Item Rows */}
+            <TableBody>
+              {items.map((row) => (
+                <TableRow key={row.name} onClick={() => { router.push(`/listings/${row.id}`) }}>
+                  <TableCell>{row.name}</TableCell>
+                  <TableCell>
+                    <img
+                      src={row.image_url}
+                      alt={row.name}
+                      width={400}
+                      height={400}
+                    />
+                  </TableCell>
+                  <TableCell>{row.price}</TableCell>
+                  <TableCell>{new Date(row.start_date).toLocaleString()}</TableCell>
+                  <TableCell>{new Date(row.end_time).toLocaleString()}</TableCell>
+                  <TableCell>
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();        // ← prevent the row’s onClick
+                        console.log("have added");       // ← actually call your handler
+                      }}
+                    >
+                      Edit or Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Box>
     </div>
   );

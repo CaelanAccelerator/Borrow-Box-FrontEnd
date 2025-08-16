@@ -15,19 +15,19 @@ const NAVIGATION: Navigation = [
   },
   {
     segment: 'listings',
-    title: 'My Listings & Management',
+    title: 'Discover Your Next Adventure',
   },
   {
     segment: 'orders',
     title: 'Orders & Rental History',
   },
   {
-    segment: 'messages',
-    title: 'Messaging & Notifications',
+    segment: 'ItemManagement',
+    title: 'My Items',
   },
   {
-    segment: 'payments',
-    title: 'Payments & Billing',
+    segment: 'messages',
+    title: 'Messaging & Notifications',
   },
   {
     segment: 'profile',
