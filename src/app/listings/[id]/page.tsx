@@ -4,7 +4,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { 
   Box, 
   Button, 
-  Card, 
   CardMedia, 
   Chip,
   Container, 
@@ -20,30 +19,56 @@ import {
   Person,
   AttachMoney 
 } from '@mui/icons-material';
-import { format } from 'date-fns';
+import { format, set } from 'date-fns';
+import { useEffect, useState } from 'react';
+ import axios from 'axios';
 
-// Mock data for testing - replace with real API call
-const mockItem = {
-  id: 1,
-  name: "Professional DSLR Camera",
-  image_url: "/ItemManagement/mock_image/20220602152901_7d355.jpg",
-  price: "99.99",
-  description: "High-end DSLR camera perfect for professional photography. Includes multiple lenses and accessories. Great for events and portrait photography.",
-  start_date: "2025-08-10",
-  end_date: "2025-08-20",
-  location: "Seattle, WA",
-  owner: "John Doe",
-  features: [
-    "24.2 Megapixel Full-Frame Sensor",
-    "4K Video Recording",
-    "Dual Memory Card Slots",
-    "Weather-Sealed Body"
-  ]
-};
+
+ interface Item {
+   id: number;
+   name: string;
+   image_url: string;
+   price: string;
+   description: string;
+   start_date: string;
+   end_date: string;
+   location: string;
+   owner: string;
+   features: string[];
+ }
+//   price: "99.99",
+//   description: "High-end DSLR camera perfect for professional photography. Includes multiple lenses and accessories. Great for events and portrait photography.",
+//   start_date: "2025-08-10",
+//   end_date: "2025-08-20",
+//   location: "Seattle, WA",
+//   owner: "John Doe",
+//   features: [
+//     "24.2 Megapixel Full-Frame Sensor",
+//     "4K Video Recording",
+//     "Dual Memory Card Slots",
+//     "Weather-Sealed Body"
+//   ]
+// };
 
 export default function ItemDetail() {
+  const [item, setItem] = useState<Item>();
+  const [userInfo, setUserInfo] = useState<any>();
   const router = useRouter();
   const params = useParams();
+
+
+  useEffect(() => {
+  const fetchItemDetails = async () => {
+    const item = await axios.get(`http://localhost:3005/uniqueItem`, { params });
+    setItem(item.data);
+    console.log("Fetched item details:", item.data);
+    const user = await axios.get(`http://localhost:3005/userInfo`, { params });
+    setUserInfo(user.data);
+    console.log(user.data);
+  };
+
+  fetchItemDetails();
+}, []);
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -63,8 +88,8 @@ export default function ItemDetail() {
             <CardMedia
               component="img"
               height="500"
-              image={mockItem.image_url}
-              alt={mockItem.name}
+              image={item?.image_url}
+              alt={item?.name}
               sx={{ 
                 objectFit: 'cover',
                 borderRadius: 1
@@ -78,7 +103,7 @@ export default function ItemDetail() {
           <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* Title and Price */}
             <Typography variant="h4" component="h1" gutterBottom>
-              {mockItem.name}
+              {item?.name}
             </Typography>
             <Typography 
               variant="h5" 
@@ -91,7 +116,7 @@ export default function ItemDetail() {
               }}
             >
               <AttachMoney />
-              {mockItem.price} per day
+              {item?.price} per day
             </Typography>
 
             {/* Key Details */}
@@ -99,22 +124,22 @@ export default function ItemDetail() {
               <Grid size="grow">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Person color="action" />
-                  <Typography>Owner: {mockItem.owner}</Typography>
+                  <Typography>Owner: {userInfo?.name}</Typography>
                 </Box>
               </Grid>
               <Grid size="grow">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <LocationOn color="action" />
-                  <Typography>Location: {mockItem.location}</Typography>
+                  <Typography>Location: </Typography>
                 </Box>
               </Grid>
               <Grid size="grow">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <CalendarMonth color="action" />
                   <Typography>
-                    Available: {format(new Date(mockItem.start_date), 'MMM dd, yyyy')} 
+                    Available: {format(new Date(item?.start_date || Date.now()), 'MMM dd, yyyy')} 
                     {' - '}
-                    {format(new Date(mockItem.end_date), 'MMM dd, yyyy')}
+                    {format(new Date(item?.end_date || Date.now()), 'MMM dd, yyyy')}
                   </Typography>
                 </Box>
               </Grid>
@@ -126,16 +151,16 @@ export default function ItemDetail() {
             <Typography variant="h6" gutterBottom>
               Description
             </Typography>
-            <Typography variant="body1" paragraph>
-              {mockItem.description}
+            <Typography variant="body1">
+              {item?.description}
             </Typography>
 
             {/* Features */}
-            <Typography variant="h6" gutterBottom>
+            {/* <Typography variant="h6" gutterBottom>
               Features
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 3 }}>
-              {mockItem.features.map((feature, index) => (
+              {item?.features.map((feature, index) => (
                 <Chip 
                   key={index} 
                   label={feature} 
@@ -143,7 +168,7 @@ export default function ItemDetail() {
                   color="primary"
                 />
               ))}
-            </Box>
+            </Box> */}
 
             {/* Action Button */}
             <Button 
@@ -152,6 +177,18 @@ export default function ItemDetail() {
               sx={{ 
                 mt: 'auto',
                 py: 2
+              }}
+              onClick={async () => {
+                try {
+                  await axios.post('http://localhost:3005/borrowRequest', { 
+                    itemId: params.id,  // Send just the ID, not the whole params object
+                    // userId: currentUserId, // if you have user authentication
+                  });
+                  console.log('Request sent successfully');
+                  router.push('/'); // Use '/' instead of full URL
+                } catch (error) {
+                  console.error('Failed to send request:', error);
+                }
               }}
             >
               Request to Rent

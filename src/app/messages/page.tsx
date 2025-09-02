@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { io, Socket } from "socket.io-client";
 import {
   Box,
   List,
@@ -16,6 +17,8 @@ import {
   Paper
 } from "@mui/material";
 import { Send as SendIcon, Search as SearchIcon } from "@mui/icons-material";
+
+const socketUrl = "http://localhost:3005/chatting"; 
 
 // Mock data for testing
 const mockChats = [
@@ -37,9 +40,47 @@ const mockChats = [
   }
 ];
 
+interface Message {
+  chatId: number;
+  sender: string;
+  content: string;
+  timestamp: string;
+}
+
 export default function Home() {
   const [selectedChat, setSelectedChat] = useState<number | null>(null);
   const [messageInput, setMessageInput] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const socketRef = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    const socket = io(socketUrl);
+    socketRef.current = socket;
+
+    socket.on("message", (msg: Message) => {
+      setMessages((prev) => [...prev, msg]);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  const handleSend = () => {
+    if (selectedChat && messageInput.trim()) {
+      const msg: Message = {
+        chatId: selectedChat,
+        sender: "Me", // 可替换为真实用户名
+        content: messageInput,
+        timestamp: new Date().toLocaleTimeString(),
+      };
+      if (socketRef.current) {
+        socketRef.current.emit("message", msg);
+      }
+      setMessages((prev) => [...prev, msg]);
+      setMessageInput("");
+    }
+  };
 
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
@@ -62,9 +103,6 @@ export default function Home() {
                 fullWidth
                 size="small"
                 placeholder="Search messages..."
-                InputProps={{
-                  endAdornment: <SearchIcon color="action" />
-                }}
               />
             </Box>
 
@@ -75,8 +113,6 @@ export default function Home() {
               {mockChats.map((chat) => (
                 <ListItem
                   key={chat.id}
-                  button
-                  selected={selectedChat === chat.id}
                   onClick={() => setSelectedChat(chat.id)}
                   sx={{
                     '&:hover': { bgcolor: 'action.hover' },
@@ -143,7 +179,18 @@ export default function Home() {
                   overflow: 'auto',
                   my: 2
                 }}>
-                  {/* Messages will go here */}
+                  {messages
+                    .filter(msg => msg.chatId === selectedChat)
+                    .map((msg, idx) => (
+                      <Box key={idx} sx={{ mb: 1 }}>
+                        <Typography variant="body2" color={msg.sender === "Me" ? "primary" : "text.secondary"}>
+                          {msg.sender}: {msg.content}
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled">
+                          {msg.timestamp}
+                        </Typography>
+                      </Box>
+                    ))}
                 </Box>
 
                 {/* Message Input */}
@@ -157,19 +204,13 @@ export default function Home() {
                     placeholder="Type a message..."
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        // Handle send message
-                        setMessageInput("");
-                      }
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSend();
                     }}
                   />
                   <IconButton
                     color="primary"
-                    onClick={() => {
-                      // Handle send message
-                      setMessageInput("");
-                    }}
+                    onClick={handleSend}
                   >
                     <SendIcon />
                   </IconButton>

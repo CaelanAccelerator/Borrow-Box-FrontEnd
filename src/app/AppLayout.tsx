@@ -9,11 +9,6 @@ import { CssBaseline } from '@mui/material';
 
 const NAVIGATION: Navigation = [
   {
-    segment: 'home',
-    title: 'Home & Discovery',
-
-  },
-  {
     segment: 'listings',
     title: 'Discover Your Next Adventure',
   },

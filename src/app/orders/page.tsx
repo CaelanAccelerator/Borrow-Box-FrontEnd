@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import { useRouter } from "next/navigation";
-import { Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TableSortLabel, TextField } from "@mui/material";
+import { Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
 import {
   Table,
   TableBody,
@@ -16,47 +16,77 @@ import {
 import axios from "axios";
 import DateSelector from "./DateSelector";
 
-interface Item {
+interface Orders {
   id: string;
   item_name: string;
   payment: number;
   start_date: string;
   end_time: string;
-  renter_name: string;
+  renter: {
+    name: string;
+  };
+  renter_id: Number;
+  borrower_id: Number;
+  status: string;
 }
 
-export default function BasicSelect() {
+const orderTypes = ['My Rentals', 'My Borrowings'];
+const orderStatuses = ['ALL', 'PENDING', 'ACTIVE', 'CANCELLED', 'COMPLETED'];
 
-  const [items, setItems] = useState<Item[]>([]);
+export default function BasicSelect() {
+  const [orders, setOrders] = useState<Orders[]>([]);
   const [startDate, setStartDate] = useState<Date | null>(new Date());
   const [endDate, setEndDate] = useState<Date | null>(null);
+  const [ordersType, setOrdersType] = useState(orderTypes[0]);
+  const [orderStatus, setOrderStatus] = useState('ALL');
+
+  const onOrderTypeChange = (event: SelectChangeEvent<typeof orderTypes[number]>) => {
+    setOrdersType(event.target.value);
+  };
+
+  const onOrderStatusChange = (event: SelectChangeEvent<typeof orderStatuses[number]>) => {
+    setOrderStatus(event.target.value);
+  };
 
   useEffect(() => {
     console.log("🔄 useEffect fired");
     async function fetchData() {
       const api = "http://localhost:3005/orders";
+      console.log(orderStatus);
       try {
+        const id = localStorage.getItem('userId');
+        console.log("User ID:", id);
         const response = await axios.get(api, {
           params: {
             start_date: startDate ? startDate.toISOString() : undefined,
             end_date: endDate ? endDate.toISOString() : undefined,
+            user_id: id,
+            status: orderStatus !== 'ALL' ? orderStatus : undefined,
           },
         });
-        
-        // 添加日志查看响应数据
-        console.log('API Response:', response.data);
-        
-        // 如果响应直接是数组，就直接使用
-        const ordersData = Array.isArray(response.data) ? response.data : response.data.data;
-        setItems(ordersData || []);
+
+        console.log("Fetched orders:", response.data);
+        if (ordersType === 'My Rentals') {
+          // Filter orders for 'My Rentals'
+          const filteredOrders = response.data.rentOrders;
+          console.log("Filtered Rent Orders:", filteredOrders);
+          setOrders(filteredOrders);
+
+        } else if (ordersType === 'My Borrowings') {
+          // Filter orders for 'My Borrowings'
+          const filteredOrders = response.data.borrowOrders;
+          console.log("Filtered Borrow Orders:", filteredOrders);
+          setOrders(filteredOrders);
+        }
+
       }
       catch (err) {
         console.error('Error loading items:', err);
-        setItems([]); // 出错时设置空数组
+        setOrders([]); // set orders to empty array on error
       }
     }
     fetchData();
-  }, [startDate, endDate]);
+  }, [startDate, endDate, ordersType, orderStatus]); // add orderStatus and ordersType as a dependency
 
   const router = useRouter();
 
@@ -78,6 +108,41 @@ export default function BasicSelect() {
             label="Search the ORDER NAME or ORDER ID"
           />
         </FormControl>
+
+        <FormControl size="medium" sx={{ width: 200 }}>
+          <InputLabel id="orders-types-select-label">Order Type</InputLabel>
+          <Select
+            labelId="orders-types-select-label"
+            name="orders-types-select"
+            value={ordersType}
+            label="Order Type"
+            onChange={onOrderTypeChange}
+          >
+            {orderTypes.map((type) => (
+              <MenuItem key={type} value={type}>
+                {type}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl size="medium" sx={{ width: 200 }}>
+          <InputLabel id="orders-status-select-label">Order Status</InputLabel> {/* 改变 id */}
+          <Select
+            labelId="orders-status-select-label"
+            name="orders-status-select"
+            value={orderStatus}
+            label="Order Status"
+            onChange={onOrderStatusChange}
+          >
+            {orderStatuses.map((status) => (
+              <MenuItem key={status} value={status}>
+                {status}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
         <FormControl size="medium" sx={{ width: 200 }}>
           <DateSelector
             label="Start Date"
@@ -103,27 +168,51 @@ export default function BasicSelect() {
                 <TableCell>Payment</TableCell>
                 <TableCell>Rent Start</TableCell>
                 <TableCell>Rental End</TableCell>
+                <TableCell>Status</TableCell>
                 <TableCell>Renter</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {items.map((row) => (
-                <TableRow key={row.id} onClick={() => { router.push(`/Orders${row.id}`) }}>
+              {orders.map((row) => (
+                <TableRow key={row.id}>
                   <TableCell>{row.id}</TableCell>
                   <TableCell>{row.item_name}</TableCell>
                   <TableCell>{row.payment}</TableCell>
                   <TableCell>{new Date(row.start_date).toLocaleString()}</TableCell>
                   <TableCell>{new Date(row.end_time).toLocaleString()}</TableCell>
-                  <TableCell><a href="http://localhost:3000/profile">{row.renter_name}</a></TableCell>
+                  <TableCell>{row.status}</TableCell>
+                  <TableCell>{String(row.renter.name)}</TableCell>
                   <TableCell>
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log("have applied");       // ← actually call your handler
-                      }}
-                    >
-                      Finish or Canncel Rental
-                    </Button>
+                    {
+                     (row.status === "PENDING") && 
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={async () => {
+                            await axios.post(`http://localhost:3005/accept-order`, { orderId: row.id });
+                            alert("Order Accepted");
+                            router.push("/orders");
+                        }}
+                      >
+                        Accept
+                      </Button>
+                    }
+                  </TableCell>
+                  <TableCell>
+                    {
+                     (row.status === "PENDING") && 
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={async () => {
+                            await axios.post(`http://localhost:3005/reject-order`, { orderId: row.id });
+                            alert("Order Rejected");
+                            router.push("/orders");
+                        }}
+                      >
+                        Reject
+                      </Button>
+                    }
                   </TableCell>
                 </TableRow>
               ))}

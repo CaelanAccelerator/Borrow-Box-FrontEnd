@@ -8,7 +8,6 @@ import {
   Avatar,
   Button,
   Paper,
-  Divider,
   TextField,
   Grid,
   Tab,

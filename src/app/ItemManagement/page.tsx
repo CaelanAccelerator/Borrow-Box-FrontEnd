@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import { useRouter } from "next/navigation";
-import { Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TableSortLabel, TextField } from "@mui/material";
+import { Button, Fab, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TableSortLabel, TextField } from "@mui/material";
 import {
   Table,
   TableBody,
@@ -48,7 +48,7 @@ const categoryList = [
 ];
 
 // Price range options for filtering
-const priceListStart = ['10', '20', '30', '40'];
+const priceListStart = ['0', '10', '20', '30', '40'];
 const priceListEnd = ['20', '30', '40', '50', '60'];
 
 // ===============================
@@ -63,11 +63,11 @@ export default function BasicSelect() {
   const [category, setCategory] = useState("");
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
-  
+
   // Date range states
   const [start_date, setStartDate] = useState<Date | null>(new Date());
   const [end_time, setEndDate] = useState<Date | null>(null);
-  
+
   // Sorting states
   const [order, setOrder] = useState<SortOrder>('asc');
   const [orderBy, setOrderBy] = useState<OrderBy>('price');
@@ -79,7 +79,7 @@ export default function BasicSelect() {
   // Data Fetching
   // ===============================
   useEffect(() => {
-    console.log("🔄 useEffect fired");
+    
     // Fetch items based on current filters and sorting
     async function fetchData() {
       const api = "http://localhost:3005/items";
@@ -91,13 +91,14 @@ export default function BasicSelect() {
           offset: number;
         }>(api, {
           params: {
+            userId: localStorage.getItem('userId'),
             category: category || null,
             priceFrom: priceFrom || null,
             priceTo: priceTo || null,
             start_date: start_date || null,
             end_time: end_time || null,
             order,
-            orderBy
+            orderBy,
           }
         });
         setItems(response.data.data);
@@ -218,23 +219,25 @@ export default function BasicSelect() {
           <DateSelector
             label="Start Date"
             value={start_date}
-            onChange={(newDate) => { setStartDate(newDate); console.log("Selected start date:", newDate); }}
+            onChange={(newDate) => { setStartDate(newDate);  }}
           />
         </FormControl>
         <FormControl size="medium" sx={{ width: 200 }}>
           <DateSelector
             label="End Date"
             value={end_time}
-            onChange={(newDate) => { setEndDate(newDate); console.log("Selected end date:", newDate); }}
+            onChange={(newDate) => { setEndDate(newDate);}}
           />
         </FormControl>
       </Box>
 
       {/* Items Table */}
-      <Box sx={{ marginTop: 0, padding: 2 }}>
+      <Box sx={{ marginTop: 0, padding: 2, position: 'relative', minHeight: '80vh' }}>
         <TableContainer component={Paper}>
           {/* Table Header with Sortable Columns */}
           <Table>
+
+            {/* Table Header */}
             <TableHead>
               <TableRow>
                 <TableCell>Item</TableCell>
@@ -254,7 +257,7 @@ export default function BasicSelect() {
             {/* Table Body with Item Rows */}
             <TableBody>
               {items.map((row) => (
-                <TableRow key={row.name} onClick={() => { router.push(`/listings/${row.id}`) }}>
+                <TableRow key={row.name}>
                   <TableCell>{row.name}</TableCell>
                   <TableCell>
                     <img
@@ -269,9 +272,9 @@ export default function BasicSelect() {
                   <TableCell>{new Date(row.end_time).toLocaleString()}</TableCell>
                   <TableCell>
                     <Button
-                      onClick={(e) => {
-                        e.stopPropagation();        // ← prevent the row’s onClick
-                        console.log("have added");       // ← actually call your handler
+                      onClick={() => {     // ← prevent the row’s onClick
+                        console.log("have added");
+                        router.push(`/ItemManagement/updateItem/${row.id}`);       // ← actually call your handler
                       }}
                     >
                       Edit or Delete
@@ -282,6 +285,31 @@ export default function BasicSelect() {
             </TableBody>
           </Table>
         </TableContainer>
+
+        <Fab
+          color="primary"
+          sx={{
+            position: 'absolute',  // Changed from 'fixed' to 'absolute'
+            bottom: 24,           // Adjust this value as needed
+            left: '50%',
+            transform: 'translateX(-50%)',
+            minWidth: 200,
+            borderRadius: 1,
+            zIndex: 1,           // Ensure button stays above table
+          }}
+        >
+          <Button
+            variant="contained"
+            onClick={() => router.push('/ItemManagement/newItem')}
+            sx={{ 
+              width: '100%',
+              height: '100%',
+              borderRadius: 'inherit' // match parent's border radius
+            }}
+          >
+            Add New Item
+          </Button>
+        </Fab>
       </Box>
     </div>
   );
