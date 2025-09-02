@@ -22,7 +22,7 @@ async function handleSignUp(name: string, username: string, password: string, co
     const router = useRouter();
     await axios.post('http://localhost:3005/signup', reqBody);
     alert("Sign up successful!");
-    router.push('/listings');
+    
   } catch (error) {
     console.error("Error signing up:", error);
     alert("Sign up failed!");
