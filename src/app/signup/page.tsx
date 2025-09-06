@@ -2,7 +2,6 @@
 
 import { Card, CardContent, TextField, Typography, Button } from '@mui/material';
 import axios from 'axios';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 async function handleSignUp(name: string, username: string, password: string, confirmPassword: string, email: string) {
@@ -19,7 +18,6 @@ async function handleSignUp(name: string, username: string, password: string, co
   };
   
   try {
-    const router = useRouter();
     await axios.post('http://localhost:3005/signup', reqBody);
     alert("Sign up successful!");
     

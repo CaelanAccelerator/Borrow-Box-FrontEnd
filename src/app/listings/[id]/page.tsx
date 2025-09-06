@@ -1,41 +1,41 @@
 "use client";
 
 import { useParams, useRouter } from 'next/navigation';
-import { 
-  Box, 
-  Button, 
-  CardMedia, 
+import {
+  Box,
+  Button,
+  CardMedia,
   Chip,
-  Container, 
-  Divider, 
-  Grid, 
-  Paper, 
-  Typography 
+  Container,
+  Divider,
+  Grid,
+  Paper,
+  Typography
 } from '@mui/material';
-import { 
-  CalendarMonth, 
+import {
+  CalendarMonth,
   ArrowBack,
   LocationOn,
   Person,
-  AttachMoney 
+  AttachMoney
 } from '@mui/icons-material';
 import { format, set } from 'date-fns';
 import { useEffect, useState } from 'react';
- import axios from 'axios';
+import axios from 'axios';
 
 
- interface Item {
-   id: number;
-   name: string;
-   image_url: string;
-   price: string;
-   description: string;
-   start_date: string;
-   end_date: string;
-   location: string;
-   owner: string;
-   features: string[];
- }
+interface Item {
+  id: number;
+  name: string;
+  image_url: string[];
+  price: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  location: string;
+  owner: string;
+  features: string[];
+}
 //   price: "99.99",
 //   description: "High-end DSLR camera perfect for professional photography. Includes multiple lenses and accessories. Great for events and portrait photography.",
 //   start_date: "2025-08-10",
@@ -58,22 +58,23 @@ export default function ItemDetail() {
 
 
   useEffect(() => {
-  const fetchItemDetails = async () => {
-    const item = await axios.get(`http://localhost:3005/uniqueItem`, { params });
-    setItem(item.data);
-    console.log("Fetched item details:", item.data);
-    const user = await axios.get(`http://localhost:3005/userInfo`, { params });
-    setUserInfo(user.data);
-    console.log(user.data);
-  };
+    const fetchItemDetails = async () => {
+      const item = await axios.get(`http://localhost:3005/uniqueItem`, { params });
+      setItem(item.data);
+      console.log("Fetched item details:", item.data);
+      console.log("Fetched item details:", item.data.customer_id);
+      const user = await axios.get(`http://localhost:3005/userInfo`, { params: { id: item.data.customer_id } });
+      setUserInfo(user.data);
+      console.log(user.data);
+    };
 
-  fetchItemDetails();
-}, []);
+    fetchItemDetails();
+  }, []);
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Back Button */}
-      <Button 
+      <Button
         startIcon={<ArrowBack />}
         onClick={() => router.back()}
         sx={{ mb: 4 }}
@@ -82,119 +83,119 @@ export default function ItemDetail() {
       </Button>
 
       <Grid container spacing={4}>
-        {/* Left Column - Image */}
-        <Grid size="grow">
-          <Paper elevation={3}>
-            <CardMedia
-              component="img"
-              height="500"
-              image={item?.image_url}
-              alt={item?.name}
-              sx={{ 
-                objectFit: 'cover',
-                borderRadius: 1
-              }}
-            />
-          </Paper>
-        </Grid>
+        {item?.image_url.slice(0, 9).map((url, index) => (
+          <Grid key={index} size={{ xs: 12, sm: 6, md: 4 }}>
+            <Paper elevation={3} sx={{ height: 350, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <CardMedia
+                component="img"
+                image={url}
+                alt={item?.name}
+                sx={{
+                  maxHeight: 320,
+                  width: '100%',
+                  objectFit: 'cover',
+                  borderRadius: 2,
+                  boxShadow: 2,
+                }}
+              />
+            </Paper>
+          </Grid>
+        ))}
+      </Grid>
 
-        {/* Right Column - Details */}
-        <Grid size="grow">
-          <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* Title and Price */}
-            <Typography variant="h4" component="h1" gutterBottom>
-              {item?.name}
-            </Typography>
-            <Typography 
-              variant="h5" 
-              color="primary" 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 1,
-                mb: 3 
-              }}
-            >
-              <AttachMoney />
-              {item?.price} per day
-            </Typography>
+      {/* Right Column - Details */}
+      <Grid size="grow">
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          {/* Title and Price */}
+          <Typography variant="h4" component="h1" gutterBottom>
+            {item?.name}
+          </Typography>
+          <Typography
+            variant="h5"
+            color="primary"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              mb: 3
+            }}
+          >
+            <AttachMoney />
+            {item?.price} per day
+          </Typography>
 
-            {/* Key Details */}
-            <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid size="grow">
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Person color="action" />
-                  <Typography>Owner: {userInfo?.name}</Typography>
-                </Box>
-              </Grid>
-              <Grid size="grow">
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <LocationOn color="action" />
-                  <Typography>Location: </Typography>
-                </Box>
-              </Grid>
-              <Grid size="grow">
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CalendarMonth color="action" />
-                  <Typography>
-                    Available: {format(new Date(item?.start_date || Date.now()), 'MMM dd, yyyy')} 
-                    {' - '}
-                    {format(new Date(item?.end_date || Date.now()), 'MMM dd, yyyy')}
-                  </Typography>
-                </Box>
-              </Grid>
+          {/* Key Details */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid size="grow">
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Person color="action" />
+                <Typography>Owner: {userInfo?.name}</Typography>
+              </Box>
             </Grid>
+            <Grid size="grow">
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <LocationOn color="action" />
+                <Typography>Location: </Typography>
+              </Box>
+            </Grid>
+            <Grid size="grow">
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CalendarMonth color="action" />
+                <Typography>
+                  Available: {format(new Date(item?.start_date || Date.now()), 'MMM dd, yyyy')}
+                  {' - '}
+                  {format(new Date(item?.end_date || Date.now()), 'MMM dd, yyyy')}
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
 
-            <Divider sx={{ my: 3 }} />
+          <Divider sx={{ my: 3 }} />
 
-            {/* Description */}
-            <Typography variant="h6" gutterBottom>
-              Description
-            </Typography>
-            <Typography variant="body1">
-              {item?.description}
-            </Typography>
+          {/* Description */}
+          <Typography variant="h6" gutterBottom>
+            Description
+          </Typography>
+          <Typography variant="body1">
+            {item?.description}
+          </Typography>
 
-            {/* Features */}
-            {/* <Typography variant="h6" gutterBottom>
-              Features
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 3 }}>
-              {item?.features.map((feature, index) => (
-                <Chip 
-                  key={index} 
-                  label={feature} 
-                  variant="outlined" 
-                  color="primary"
-                />
-              ))}
-            </Box> */}
+          {/* Features */}
+          {/* <Typography variant="h6" gutterBottom>
+            Features
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 3 }}>
+            {item?.features.map((feature, index) => (
+              <Chip 
+                key={index} 
+                label={feature} 
+                variant="outlined" 
+                color="primary"
+              />
+            ))}
+          </Box> */}
 
-            {/* Action Button */}
-            <Button 
-              variant="contained" 
-              size="large"
-              sx={{ 
-                mt: 'auto',
-                py: 2
-              }}
-              onClick={async () => {
-                try {
-                  await axios.post('http://localhost:3005/borrowRequest', { 
-                    itemId: params.id,  // Send just the ID, not the whole params object
-                    // userId: currentUserId, // if you have user authentication
-                  });
-                  console.log('Request sent successfully');
-                  router.push('/'); // Use '/' instead of full URL
-                } catch (error) {
-                  console.error('Failed to send request:', error);
-                }
-              }}
-            >
-              Request to Rent
-            </Button>
-          </Box>
-        </Grid>
+          {/* Action Button */}
+          <Button
+            variant="contained"
+            size="large"
+            sx={{
+              mt: 'auto',
+              py: 2
+            }}
+            onClick={async () => {
+              try {
+                await axios.post('http://localhost:3005/borrowRequest', { itemId: params.id });
+                alert('Request sent successfully');
+                router.push('/listings');
+              } catch (error) {
+                console.error('Failed to send request:', error);
+              }
+            }}
+          >
+            Request to Rent
+          </Button>
+        </Box>
       </Grid>
     </Container>
   );

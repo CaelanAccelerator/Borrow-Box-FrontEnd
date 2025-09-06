@@ -261,7 +261,7 @@ export default function BasicSelect() {
                   <TableCell>{row.name}</TableCell>
                   <TableCell>
                     <img
-                      src={row.image_url}
+                      src={row.image_url[0]}
                       alt={row.name}
                       width={400}
                       height={400}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -11,12 +11,15 @@ import {
   Paper,
   Grid,
   MenuItem,
+  CircularProgress,
 } from '@mui/material';
 import { PhotoCamera } from '@mui/icons-material';
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import axios from 'axios';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers';
+import { getToken, getUserId, isLoggedIn } from '@/utils/auth'; 
+import { uploadMultipleImages, validateMultipleImages } from '../cloud/cloud';
 
 const categories = [
   'Computers', 'XBox', 'Balls', 'Books', 'Furniture', 'Kitchenware',
@@ -28,15 +31,17 @@ interface NewItem {
   description: string;
   category: string;
   price: string;
-  imageUrl: File[]; // 将 `images` 改为 `imageUrl`
-  startDate: Date | null; // 将 `start_date` 改为 `startDate`
-  endTime: Date | null; // 将 `end_time` 改为 `endTime`
-  customerId?: number | null; // 添加 `userId` 字段
+  imageUrl: string[];
+  startDate: Date | null;
+  endTime: Date | null;
 }
 
 export default function NewItemPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [item, setItem] = useState<NewItem>({
     name: '',
     description: '',
@@ -45,54 +50,108 @@ export default function NewItemPage() {
     imageUrl: [],
     startDate: null,
     endTime: null,
-    customerId: Number(localStorage.getItem('userId')),
   });
 
+  useEffect(() => {
+    if (!isLoggedIn()) {
+      alert('Please login first');
+      router.push('/login');
+    }
+  }, [router]);
+
+  // Image upload handler (only save files, do not upload immediately)
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const newFiles = Array.from(event.target.files);
+
+      if (selectedFiles.length + newFiles.length > 9) {
+        alert('Maximum 9 images allowed');
+        return;
+      }
+
+      // Validate images
+      const validation = validateMultipleImages(newFiles);
+      if (!validation.isValid) {
+        setUploadError(validation.errors.join('\n'));
+        alert(validation.errors.join('\n'));
+        return;
+      }
+
+      setSelectedFiles(prev => [...prev, ...newFiles]);
+      setUploadError(null);
+    }
+  };
+
+  // Remove image
+  const removeImage = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setItem(prev => ({
+      ...prev,
+      imageUrl: prev.imageUrl.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Handle form field change
   const handleChange = (field: keyof NewItem) => (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setItem({ ...item, [field]: event.target.value });
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      const newImages = Array.from(event.target.files);
-      if (item.imageUrl.length + newImages.length <= 9) {
-        setItem({ ...item, imageUrl: [...item.imageUrl, ...newImages] });
-      } else {
-        alert('Maximum 9 images allowed');
-      }
-    }
-  };
-
+  // Form submit handler (upload images to cloud on submit)
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
-
+    setUploadingImages(true);
     try {
-      // 构建 JSON 数据
-      const payload = {
-        ...item,
-        imageUrl: item.imageUrl.map((image) => URL.createObjectURL(image)), // 将文件转换为 URL 或上传后替换为实际 URL
+      // Upload all image files to cloud
+      let imageUrls: string[] = [];
+      if (selectedFiles.length > 0) {
+        imageUrls = await uploadMultipleImages(selectedFiles);
+      }
+
+      const token = getToken();
+      const dataToBackend = {
+        customerId: Number(getUserId()),
+        name: item.name,
+        description: item.description,
+        category: item.category,
+        price: item.price,
+        imageUrl: imageUrls, // Use the URLs just uploaded
+        startDate: item.startDate?.toISOString(),
+        endTime: item.endTime?.toISOString(),
       };
 
-      // 发送 JSON 数据
-      await axios.post('http://localhost:3005/createItem', payload, {
+      console.log('Submitting dataToBackend:', dataToBackend);
+
+      await axios.post('http://localhost:3005/createItem', dataToBackend, {
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
       });
 
-      alert('Success to create item');
+      alert('Item created successfully!');
       router.push('/ItemManagement');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating item:', error);
-      alert('Failed to create item');
+      if (error.response?.status === 401) {
+        alert('Authentication failed. Please login again.');
+        router.push('/login');
+      } else {
+        alert('Failed to create item. Please try again.');
+      }
     } finally {
       setLoading(false);
+      setUploadingImages(false);
     }
   };
 
+  /*
+    ****************************************************************
+    UI Section
+    ****************************************************************
+  */
   return (
     <Container maxWidth="lg" sx={{ py: 6, px: 4 }}>
       <Paper sx={{ p: 4 }}>
@@ -152,7 +211,6 @@ export default function NewItemPage() {
               />
             </Grid>
 
-                
             <Grid size={{ xs: 12, sm: 6 }}>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DatePicker
@@ -185,43 +243,71 @@ export default function NewItemPage() {
               </LocalizationProvider>
             </Grid>
 
+            {/* Image upload area */}
             <Grid size={{ xs: 12 }}>
-              <Button
-                component="label"
-                variant="outlined"
-                startIcon={<PhotoCamera />}
-                sx={{ mr: 2 }}
-              >
-                Upload Images
-                <input
-                  type="file"
-                  hidden
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                />
-              </Button>
-              <Typography variant="caption" color="text.secondary">
-                {item.imageUrl.length}/9 images uploaded
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Button
+                  component="label"
+                  variant="outlined"
+                  startIcon={uploadingImages ? <CircularProgress size={20} /> : <PhotoCamera />}
+                  disabled={uploadingImages || item.imageUrl.length >= 9}
+                >
+                  {uploadingImages ? 'Uploading...' : 'Upload Images'}
+                  <input
+                    type="file"
+                    hidden
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                  />
+                </Button>
+                <Typography variant="caption" color="text.secondary">
+                  {selectedFiles.length}/9 images uploaded
+                </Typography>
+              </Box>
+              {uploadError && (
+                <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+                  {uploadError}
+                </Typography>
+              )}
             </Grid>
 
-            {item.imageUrl.length > 0 && (
-              <Grid size={{ xs: 12 }}>
-                <Grid container spacing={1}>
-                  {item.imageUrl.map((image, index) => (
-                    <Grid key={index} size={{ xs: 4, sm: 3, md: 2 }}>
-                      <Box
-                        component="img"
-                        src={URL.createObjectURL(image)}
-                        alt={`Preview ${index + 1}`}
-                        sx={{
-                          width: '100%',
-                          height: 100,
-                          objectFit: 'cover',
-                          borderRadius: 1,
-                        }}
-                      />
+            {/* Selected images preview */}
+            {selectedFiles.length > 0 && (
+              <Grid size={{ xs: 24 }}>
+                <Typography variant="h6" gutterBottom>
+                  Selected Images:
+                </Typography>
+                <Grid container spacing={2}>
+                  {selectedFiles.map((file, index) => (
+                    <Grid key={index} size={{ xs: 16, sm: 12, md: 8 }}>
+                      <Box sx={{ position: 'relative' }}>
+                        <Box
+                          component="img"
+                          src={URL.createObjectURL(file)}
+                          alt={`Preview ${index + 1}`}
+                          sx={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            borderRadius: 1,
+                          }}
+                        />
+                        <Button
+                          size="small"
+                          color="error"
+                          onClick={() => removeImage(index)}
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            right: 0,
+                            minWidth: 'auto',
+                            p: 0.5,
+                          }}
+                        >
+                          remove
+                        </Button>
+                      </Box>
                     </Grid>
                   ))}
                 </Grid>
@@ -233,16 +319,16 @@ export default function NewItemPage() {
                 <Button
                   variant="outlined"
                   onClick={() => router.back()}
-                  disabled={loading}
+                  disabled={loading || uploadingImages}
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   variant="contained"
-                  disabled={loading}
+                  disabled={loading || uploadingImages || selectedFiles.length === 0}
                 >
-                  Create Item
+                  {loading ? 'Creating...' : 'Create Item'}
                 </Button>
               </Box>
             </Grid>

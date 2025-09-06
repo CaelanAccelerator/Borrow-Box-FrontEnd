@@ -28,7 +28,7 @@ const StyledMasonry = styled(Masonry)({
 interface Item {
   id: number;
   name: string;
-  image_url: string;
+  image_url: string[];
   price: String;
   start_date: string;
   end_time: string;
@@ -240,11 +240,11 @@ export default function ItemManagement() {
               <CardMedia
                 component="img"
                 height="200"
-                image={DEFAULT_IMAGE}
+                image={item.image_url[0] || DEFAULT_IMAGE}
                 alt={item.name}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = DEFAULT_IMAGE;
+                  target.src = item.image_url[0] || DEFAULT_IMAGE;
                 }}
               />
               <CardContent>
