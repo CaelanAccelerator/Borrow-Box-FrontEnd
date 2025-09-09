@@ -13,7 +13,7 @@ const BRANDING = {
 
 export default function Layout({children}: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-toolpad-color-scheme="light">
       <body>
         <NextAppProvider navigation={NAVIGATION} theme={AppTheme} branding ={BRANDING}>
           <AppLayout>
