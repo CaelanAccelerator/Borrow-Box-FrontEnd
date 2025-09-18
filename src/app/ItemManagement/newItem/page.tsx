@@ -63,12 +63,10 @@ export default function NewItemPage() {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const newFiles = Array.from(event.target.files);
-
       if (selectedFiles.length + newFiles.length > 9) {
         alert('Maximum 9 images allowed');
         return;
       }
-
       // Validate images
       const validation = validateMultipleImages(newFiles);
       if (!validation.isValid) {
@@ -76,7 +74,6 @@ export default function NewItemPage() {
         alert(validation.errors.join('\n'));
         return;
       }
-
       setSelectedFiles(prev => [...prev, ...newFiles]);
       setUploadError(null);
     }
@@ -111,8 +108,9 @@ export default function NewItemPage() {
       }
 
       const token = getToken();
+      console.log('User token:', getUserId());
       const dataToBackend = {
-        customerId: Number(getUserId()),
+        customerId: String(getUserId()),
         name: item.name,
         description: item.description,
         category: item.category,

@@ -22,6 +22,7 @@ import {
 import { format, set } from 'date-fns';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { getUserId } from '@/utils/auth';
 
 
 interface Item {
@@ -185,7 +186,8 @@ export default function ItemDetail() {
             }}
             onClick={async () => {
               try {
-                await axios.post('http://localhost:3005/borrowRequest', { itemId: params.id });
+                console.log(params.id, getUserId());
+                await axios.post('http://localhost:3005/borrowRequest', { itemId: params.id, userId: getUserId() });
                 alert('Request sent successfully');
                 router.push('/listings');
               } catch (error) {

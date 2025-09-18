@@ -52,7 +52,6 @@ const AppTheme = createTheme({
 export {NAVIGATION, AppTheme};
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  // DashboardLayout will read your NAVIGATION from NextAppProvider
   return (
     <ThemeProvider theme={AppTheme}>
       <CssBaseline />

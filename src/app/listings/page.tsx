@@ -49,7 +49,7 @@ const categoryList = [
   'Drones', 'Cameras', 'Appliances', 'Home Decor', 'Fitness Equipment',
 ];
 
-const priceListStart = ['10', '20', '30', '40'];
+const priceListStart = ['0','10', '20', '30', '40'];
 const priceListEnd = ['20', '30', '40', '50', '60'];
 
 const breakpointCols = {
@@ -107,7 +107,7 @@ export default function ItemManagement() {
   useEffect(() => {
     console.log("🔄 useEffect fired");
     async function fetchData() {
-      const api = "http://localhost:3005/items";
+      const api = "http://localhost:3005/exploreItems";
       try {
         const response = await axios.get<{
           data: Item[];

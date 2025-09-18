@@ -82,7 +82,7 @@ export default function BasicSelect() {
     
     // Fetch items based on current filters and sorting
     async function fetchData() {
-      const api = "http://localhost:3005/items";
+      const api = "http://localhost:3005/myItems";
       try {
         const response = await axios.get<{
           data: Item[];
