@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import DateSelector from "./DateSelector";
+import { getUserId } from "@/utils/auth";
 
 interface Orders {
   id: string;
@@ -25,8 +26,8 @@ interface Orders {
   renter: {
     name: string;
   };
-  renter_id: Number;
-  borrower_id: Number;
+  renter_id: string;
+  borrower_id: string;
   status: string;
 }
 
@@ -184,7 +185,7 @@ export default function BasicSelect() {
                   <TableCell>{String(row.renter.name)}</TableCell>
                   <TableCell>
                     {
-                     (row.status === "PENDING") && 
+                     (row.status === "PENDING" && getUserId() === row.renter_id) && 
                       <Button
                         variant="contained"
                         color="primary"
@@ -200,7 +201,7 @@ export default function BasicSelect() {
                   </TableCell>
                   <TableCell>
                     {
-                     (row.status === "PENDING") && 
+                     (row.status === "PENDING" && getUserId() === row.renter_id) && 
                       <Button
                         variant="contained"
                         color="primary"

@@ -5,7 +5,6 @@ import {
   Box,
   Button,
   CardMedia,
-  Chip,
   Container,
   Divider,
   Grid,
@@ -19,7 +18,7 @@ import {
   Person,
   AttachMoney
 } from '@mui/icons-material';
-import { format, set } from 'date-fns';
+import { format} from 'date-fns';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { getUserId } from '@/utils/auth';
@@ -34,7 +33,10 @@ interface Item {
   start_date: string;
   end_date: string;
   location: string;
-  owner: string;
+  owner: {
+    name: string;
+    id: string;
+  };
   features: string[];
 }
 //   price: "99.99",
@@ -177,6 +179,7 @@ export default function ItemDetail() {
           </Box> */}
 
           {/* Action Button */}
+          
           <Button
             variant="contained"
             size="large"
@@ -184,6 +187,7 @@ export default function ItemDetail() {
               mt: 'auto',
               py: 2
             }}
+            disabled={getUserId() === userInfo?.id}
             onClick={async () => {
               try {
                 console.log(params.id, getUserId());
