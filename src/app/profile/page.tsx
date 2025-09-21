@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Container,
@@ -19,6 +19,8 @@ import {
   Notifications,
   Edit as EditIcon,
 } from "@mui/icons-material";
+import axios from "axios";
+import { getUserId } from "@/utils/auth";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -35,12 +37,76 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+interface UserInfo {
+  id: string;
+  name: string;
+  email: string;
+  username: string;
+  created_at: string;
+}
+
 export default function Profile() {
   const [tabValue, setTabValue] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [originalUserInfo, setOriginalUserInfo] = useState<UserInfo | null>(null);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+
+  useEffect(() => {
+    async function fetchUserInfo() {
+      try {
+        const userInfo = await axios.get("http://localhost:3005/userInfo",{params: {id: getUserId()}});
+        setUserInfo(userInfo.data);
+        setOriginalUserInfo(userInfo.data); // Save original data for cancel
+      } catch (error) {
+        console.error("Failed to fetch user info:", error);
+      }
+    }
+    fetchUserInfo();
+  }, []);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+  };
+
+  const updateChanges = async () => {
+    if (!userInfo?.name) {
+      alert("Name cannot be empty.");
+      return;
+    }
+    try {
+      await axios.post("http://localhost:3005/userInfo", userInfo);
+      setOriginalUserInfo(userInfo);
+    } catch (error) {
+      console.error("Failed to update user info:", error);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      alert("Please fill in all password fields.");
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      alert("New passwords do not match.");
+      return;
+    }
+    try {
+      const response = await axios.post("http://localhost:3005/changePassword", {
+        userId: userInfo?.id,
+        currentPassword,
+        newPassword,
+      });
+      console.log(response);
+      alert(response.data.message);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+    } catch (error) {
+      alert("Failed to update password.");
+    }
   };
 
   return (
@@ -50,18 +116,23 @@ export default function Profile() {
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
           <Avatar
             sx={{ width: 120, height: 120 }}
-            alt="User Name"
-            src="/path/to/avatar.jpg"
+            alt={userInfo?.name || ""}
+            src="" // You can add avatar url if available
           />
           <Box sx={{ flex: 1 }}>
             <Typography variant="h4" gutterBottom>
-              John Doe
+              {userInfo?.name}
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              john.doe@example.com
+              {userInfo?.email}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Member since: January 2023
+              Username: {userInfo?.username}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Member since: {userInfo?.created_at
+                ? new Date(userInfo.created_at).toLocaleDateString()
+                : ""}
             </Typography>
           </Box>
           <Button
@@ -92,52 +163,64 @@ export default function Profile() {
             <Grid size="auto">
               <TextField
                 fullWidth
-                label="First Name"
-                defaultValue="John"
+                label="Name"
+                value={userInfo?.name || ""}
                 disabled={!isEditing}
-              />
-            </Grid>
-            <Grid size="auto">
-              <TextField
-                fullWidth
-                label="Last Name"
-                defaultValue="Doe"
-                disabled={!isEditing}
+                onChange={e =>
+                  setUserInfo(userInfo
+                    ? { ...userInfo, name: e.target.value }
+                    : null)
+                }
               />
             </Grid>
             <Grid size="auto">
               <TextField
                 fullWidth
                 label="Email"
-                defaultValue="john.doe@example.com"
+                value={userInfo?.email || ""}
                 disabled={!isEditing}
+                onChange={e =>
+                  setUserInfo(userInfo
+                    ? { ...userInfo, email: e.target.value }
+                    : null)
+                }
               />
             </Grid>
             <Grid size="auto">
               <TextField
                 fullWidth
-                label="Phone"
-                defaultValue="+1 234 567 8900"
-                disabled={!isEditing}
+                label="Username"
+                value={userInfo?.username || ""}
+                disabled // Username is always disabled (unchangeable)
+                // onChange removed since it's uneditable
               />
             </Grid>
             <Grid size="auto">
               <TextField
                 fullWidth
-                label="Address"
-                multiline
-                rows={3}
-                defaultValue="123 Main St, City, Country"
-                disabled={!isEditing}
+                label="Member Since"
+                value={
+                  userInfo?.created_at
+                    ? new Date(userInfo.created_at).toLocaleDateString()
+                    : ""
+                }
+                disabled
               />
             </Grid>
             {isEditing && (
               <Grid size="auto">
                 <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
-                  <Button variant="outlined" onClick={() => setIsEditing(false)}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setUserInfo(originalUserInfo); // Restore original values
+                      setIsEditing(false);
+                    }}
+                  >
                     Cancel
                   </Button>
-                  <Button variant="contained" onClick={() => setIsEditing(false)}>
+                  <Button variant="contained"
+                   onClick={() => {setIsEditing(false); updateChanges();}}>
                     Save Changes
                   </Button>
                 </Box>
@@ -158,20 +241,28 @@ export default function Profile() {
                 type="password"
                 label="Current Password"
                 sx={{ mb: 2 }}
+                value={currentPassword}
+                onChange={e => setCurrentPassword(e.target.value)}
               />
               <TextField
                 fullWidth
                 type="password"
                 label="New Password"
                 sx={{ mb: 2 }}
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
               />
               <TextField
                 fullWidth
                 type="password"
                 label="Confirm New Password"
                 sx={{ mb: 2 }}
+                value={confirmNewPassword}
+                onChange={e => setConfirmNewPassword(e.target.value)}
               />
-              <Button variant="contained">Update Password</Button>
+              <Button variant="contained" onClick={handleChangePassword}>
+                Update Password
+              </Button>
             </Grid>
           </Grid>
         </TabPanel>
