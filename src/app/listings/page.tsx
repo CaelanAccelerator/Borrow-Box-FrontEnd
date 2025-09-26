@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import axios from 'axios';
 import { useState, useEffect } from 'react';
 import DateSelector from './DateSelector';
+import { isLoggedIn } from '@/utils/auth';
 
 // ===============================
 // Styled Components
@@ -101,9 +102,14 @@ export default function ItemManagement() {
     }
   };
 
-  // ===============================
+   useEffect(() => {
+      if (!isLoggedIn()) {
+        alert('Please log in to access this page');
+        router.push('/'); // Redirect to home instead of login
+      }
+    }, [router]);
+
   // Data Fetching
-  // ===============================
   useEffect(() => {
     console.log("🔄 useEffect fired");
     async function fetchData() {

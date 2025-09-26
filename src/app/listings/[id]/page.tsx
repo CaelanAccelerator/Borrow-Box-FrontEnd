@@ -21,7 +21,7 @@ import {
 import { format} from 'date-fns';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { getUserId } from '@/utils/auth';
+import { getUserId, isLoggedIn } from '@/utils/auth';
 
 
 interface Item {
@@ -59,7 +59,13 @@ export default function ItemDetail() {
   const router = useRouter();
   const params = useParams();
 
-
+ useEffect(() => {
+    if (!isLoggedIn()) {
+      alert('Please log in to access this page');
+      router.push('/'); // Redirect to home instead of login
+    }
+  }, [router]);
+  
   useEffect(() => {
     const fetchItemDetails = async () => {
       const item = await axios.get(`http://localhost:3005/uniqueItem`, { params });

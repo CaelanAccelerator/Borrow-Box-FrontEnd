@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import DateSelector from "./DateSelector";
+import { isLoggedIn } from "@/utils/auth";
 
 // ===============================
 // Types & Interfaces
@@ -75,6 +76,12 @@ export default function BasicSelect() {
   // Router for navigation
   const router = useRouter();
 
+   useEffect(() => {
+      if (!isLoggedIn()) {
+        alert('Please log in to access this page');
+        router.push('/'); // Redirect to home instead of login
+      }
+    }, [router]);
   // ===============================
   // Data Fetching
   // ===============================

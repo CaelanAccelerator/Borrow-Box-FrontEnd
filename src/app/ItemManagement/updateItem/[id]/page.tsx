@@ -18,6 +18,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import axios from 'axios';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers';
+import { isLoggedIn } from '@/utils/auth';
 
 const categories = [
   'Computers', 'XBox', 'Balls', 'Books', 'Furniture', 'Kitchenware',
@@ -49,6 +50,13 @@ export default function NewItemPage() {
     startDate: null,
     endTime: null,
   });
+
+   useEffect(() => {
+      if (!isLoggedIn()) {
+        alert('Please log in to access this page');
+        router.push('/'); // Redirect to home instead of login
+      }
+    }, [router]);
 
   useEffect(() => {
     const fetchData = async () => {

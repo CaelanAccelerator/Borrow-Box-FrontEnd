@@ -3,11 +3,13 @@ import React from 'react';
 import { NextAppProvider } from '@toolpad/core/nextjs';
 import {NAVIGATION, AppTheme} from './AppLayout';
 import AppLayout from './AppLayout';
+import { getUsername } from '@/utils/auth';
 
 const BRANDING = {
   logo: null,
-  title: 'Borrow Box',    
+  title: getUsername() || 'Borrow Box',
   homeUrl: '/home', 
+  
 }
 
 

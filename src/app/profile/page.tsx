@@ -18,9 +18,11 @@ import {
   Security,
   Notifications,
   Edit as EditIcon,
+  Logout as LogoutIcon,
 } from "@mui/icons-material";
 import axios from "axios";
-import { getUserId } from "@/utils/auth";
+import { getUserId, isLoggedIn, logout } from "@/utils/auth"; // Added logout import
+import { useRouter } from "next/navigation";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -53,6 +55,17 @@ export default function Profile() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+
+  const router = useRouter();
+
+   useEffect(() => {
+        if (!isLoggedIn()) {
+          alert('Please log in to access this page');
+          router.push('/'); // Redirect to home instead of login
+        }else{
+          console.log('UserId:', getUserId());
+        }
+      }, [router]);
 
   useEffect(() => {
     async function fetchUserInfo() {
@@ -109,6 +122,12 @@ export default function Profile() {
     }
   };
 
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to log out?')) {
+      logout();
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Profile Header */}
@@ -135,13 +154,25 @@ export default function Profile() {
                 : ""}
             </Typography>
           </Box>
-          <Button
-            variant="outlined"
-            startIcon={<EditIcon />}
-            onClick={() => setIsEditing(!isEditing)}
-          >
-            Edit Profile
-          </Button>
+          
+          {/* Button Group */}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            <Button
+              variant="outlined"
+              startIcon={<EditIcon />}
+              onClick={() => setIsEditing(!isEditing)}
+            >
+              Edit Profile
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<LogoutIcon />}
+              onClick={handleLogout}
+            >
+              Log Out
+            </Button>
+          </Box>
         </Box>
       </Paper>
 

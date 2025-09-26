@@ -17,6 +17,8 @@ import {
   Paper
 } from "@mui/material";
 import { Send as SendIcon, Search as SearchIcon } from "@mui/icons-material";
+import { isLoggedIn } from "@/utils/auth";
+import { useRouter } from "next/navigation";
 
 const socketUrl = "http://localhost:3005/chatting"; 
 
@@ -52,6 +54,14 @@ export default function Home() {
   const [messageInput, setMessageInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const socketRef = useRef<Socket | null>(null);
+  const router = useRouter();
+
+   useEffect(() => {
+      if (!isLoggedIn()) {
+        alert('Please log in to access this page');
+        router.push('/'); // Redirect to home instead of login
+      }
+    }, [router]);
 
   useEffect(() => {
     const socket = io(socketUrl);

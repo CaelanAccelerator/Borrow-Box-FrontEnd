@@ -54,8 +54,8 @@ export default function NewItemPage() {
 
   useEffect(() => {
     if (!isLoggedIn()) {
-      alert('Please login first');
-      router.push('/login');
+      alert('Please log in to access this page');
+      router.push('/'); // Redirect to home instead of login
     }
   }, [router]);
 

@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import DateSelector from "./DateSelector";
-import { getUserId } from "@/utils/auth";
+import { getUserId, isLoggedIn } from "@/utils/auth";
 
 interface Orders {
   id: string;
@@ -48,6 +48,15 @@ export default function BasicSelect() {
   const onOrderStatusChange = (event: SelectChangeEvent<typeof orderStatuses[number]>) => {
     setOrderStatus(event.target.value);
   };
+
+  const router = useRouter();
+  
+   useEffect(() => {
+      if (!isLoggedIn()) {
+        alert('Please log in to access this page');
+        router.push('/'); // Redirect to home instead of login
+      }
+    }, [router]);
 
   useEffect(() => {
     console.log("🔄 useEffect fired");
@@ -88,8 +97,6 @@ export default function BasicSelect() {
     }
     fetchData();
   }, [startDate, endDate, ordersType, orderStatus]); // add orderStatus and ordersType as a dependency
-
-  const router = useRouter();
 
   return (
     <div>
