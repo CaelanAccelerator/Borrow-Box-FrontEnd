@@ -21,4 +21,3 @@ This project was built as part of my self-directed learning journey. I developed
 
 ---
 
-This isn’t just a project — it’s a reflection of how I learned hands-on development skills that are often missed in university education.
