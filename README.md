@@ -15,9 +15,6 @@ This project was built as part of my self-directed learning journey. I developed
 - 🧾 User registration and authentication
 - 🎒 Item listings with category filtering
 - 📅 Booking system with availability time slots
-- 💬 Real-time messaging between users
 - 🛒 Rental history and order tracking
-- 💳 Billing and payment summaries
-
 ---
 
